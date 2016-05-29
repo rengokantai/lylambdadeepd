@@ -137,3 +137,86 @@ then
 ```
 aws lambda list-functions --query Functions[4].{Arn:FunctionArn} --region us-east-1
 ```
+set config
+```
+aws s3api put-bucket-notification-configuration --bucket lylambdadeepdive --notification-configuration file:///lambdaconfig.json
+```
+######Testing Functions With The CLI
+create test
+```
+{
+"Records":[
+{
+"eventVersion":"2.0",
+"eventSource":"aws:s3",
+"awsRegion":"us-east-1",
+"eventName":"1999-01-01T00:00:00.0001",
+"eventName":"ObjectCreated:Put",
+"userIdentity":{
+"PrincipalId":"123"
+},
+"requestParameters":{
+"sourceIPAddress":"127.0.0.1"},
+"responseElements":{
+"x-amz-request-id":"123",
+"x-amz-id-2":"22z"},
+"s3":{
+"s3SchemaVersion":"1.0",
+"configurationId":"testConfigRule",
+"bucket":{
+"name":"lylambdadeepdive",
+"ownerIdentity":{
+"principleId":"ke"},
+"arn":"arn:aws:s3:::lylambdadeepdive"
+},
+"object":{
+"key":"images/uploaded.png",
+"size":1000,
+"eTag":"123",
+"versionId":"1213"}
+}
+}
+]
+}
+```
+dryrun: should return code 204.note: change node to v4
+```
+aws lambda invoke --function-name kk --payload file:///test.json --invocation-type DryRun output.json
+```
+real run:
+```
+aws lambda invoke --function-name kk --payload file:///test.json output.json
+```
+check output.json,should show
+```
+image/png
+```
+######Managing Pull Events And Event Source Mappings With The CLI
+file
+```
+{
+"Version":"2012-10-17"
+"Statement":[
+{
+"Effect":"Allow",
+"Principal":{"Service":"lambda.amazonaws.com"},
+"Action":"sts:AssumeRole"
+}
+]}
+```
+createrole
+```
+aws iam create-role --role-name kkrole --assume-role-policy-document file:///lambdarole.json
+```
+(to be conti)
+######Retrieving Lambda CloudWatch Logs From The CLI
+```
+aws logs describe-log-groups --region us-east-1
+aws logs describe-log-streams --log-group-name /aws/lambda/kk --region us-east-1
+aws logs describe-log-streams --log-group-name /aws/lambda/kk --region us-east-1 --log-stream-name-prefix 2016/05/29
+aws logs describe-log-streams --log-group-name /aws/lambda/kk --region us-east-1 --output text --query logStreams[*].logStreamName
+```
+more complicated
+```
+log_streams =$(aws logs describe-log-streams --log-group-name /aws/lambda/kk --region us-east-1 --output text --query logStreams[*].logStreamName) && for log_stream in $log_streams; do aws logs get-log-events --log-group-name /aws/lambda/kk --log-stram-name $log-stream- --output text --query events[*].message; done|less
+```
