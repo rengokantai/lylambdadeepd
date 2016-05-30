@@ -220,3 +220,44 @@ more complicated
 ```
 log_streams =$(aws logs describe-log-streams --log-group-name /aws/lambda/kk --region us-east-1 --output text --query logStreams[*].logStreamName) && for log_stream in $log_streams; do aws logs get-log-events --log-group-name /aws/lambda/kk --log-stram-name $log-stream- --output text --query events[*].message; done|less
 ```
+######Test with dynamodb
+create a dynamodb, key =id  
+create a lambda function using python,
+```
+from __future__ import print_function
+
+import json
+import boto3
+
+print('Loading function')
+
+
+def lambda_handler(event, context):
+    #print("Received event: " , json.dumps(event, indent=2))
+    operation = event['operation']
+    if 'tableName' in event:
+        dynamo = boto3.resource('dynamodb').Table(event['tableName'])
+    operations ={
+        'create':lambda x:dynamo.put_item(**x)
+        }
+    if operation in operations:
+        return operations[operation](event.get('payload'))
+    else:
+        raise ValueError('error')
+```
+
+using api gateway:: body
+```
+{
+    "operation":"create",
+    "tableName":"lylambdadeepdive",
+    "payload":{
+    "Item":{
+        "id":"1",
+        "name":"ke"
+    }
+}
+}
+```
+######Test nodejs local (gulp)
+
